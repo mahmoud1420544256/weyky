@@ -449,30 +449,27 @@ fun HomeBottomControlRow(
 ) {
   val isModern = uiState.themeMode == WeykyThemeMode.MODERN
   val isMinimal = uiState.themeMode == WeykyThemeMode.MINIMAL
+  val isTactical = uiState.themeMode == WeykyThemeMode.TACTICAL
 
-  val flankShape = if (uiState.themeMode == WeykyThemeMode.TACTICAL) CutCornerShape(8.dp) else RoundedCornerShape(16.dp)
-  val pillShape = if (uiState.themeMode == WeykyThemeMode.TACTICAL) CutCornerShape(10.dp) else RoundedCornerShape(25.dp)
+  val flankShape = when {
+    isTactical -> CutCornerShape(8.dp)
+    isModern -> RoundedCornerShape(16.dp)
+    else -> RoundedCornerShape(12.dp)
+  }
+  val pillShape = when {
+    isTactical -> CutCornerShape(10.dp)
+    isModern -> RoundedCornerShape(26.dp)
+    else -> RoundedCornerShape(14.dp)
+  }
 
-  val flankBg = when {
-    isModern -> Color(0x400C192E)
-    isMinimal -> Color(0xEE0E1722)
-    else -> panelBgElevated
-  }
-  val flankBorder = when {
-    isModern -> Color(0xFF00D2FF)
-    isMinimal -> Color(0xFF1E2D3D)
-    else -> borderColor
-  }
-  val pillBg = when {
-    isModern -> Color(0x400C192E)
-    isMinimal -> Color(0xEE0E1722)
-    else -> panelBg
-  }
-  val pillBorder = when {
-    isModern -> Color(0xFF00D2FF)
-    isMinimal -> Color(0xFF1E2D3D)
-    else -> borderColor
-  }
+  val modernGlassGradient = Brush.verticalGradient(
+    listOf(Color(0x550F2C4C), Color(0x330B1B30))
+  )
+  val modernBorderBrush = Brush.linearGradient(
+    listOf(Color(0xFF00E5FF), Color(0xFF0088FF))
+  )
+  val minimalSlateBg = Color(0xFF101924)
+  val minimalBorderColor = Color(0xFF1E2D3D)
 
   CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
     Row(
@@ -483,33 +480,76 @@ fun HomeBottomControlRow(
       verticalAlignment = Alignment.CenterVertically
     ) {
       // 1. LEFT BUTTON: Installed Apps (3x3 grid)
-      Box(
-        modifier = Modifier
+      val appsModifier = when {
+        isModern -> Modifier
+          .size(50.dp)
+          .shadow(6.dp, flankShape, spotColor = Color(0x6600D2FF), ambientColor = Color(0x3300D2FF))
+          .clip(flankShape)
+          .background(modernGlassGradient)
+          .border(1.5.dp, modernBorderBrush, flankShape)
+          .clickable(onClick = onToggleAppDrawer)
+          .testTag("app_drawer_button")
+        isMinimal -> Modifier
           .size(50.dp)
           .clip(flankShape)
-          .background(flankBg)
-          .border(1.2.dp, flankBorder, flankShape)
+          .background(minimalSlateBg)
+          .border(1.dp, minimalBorderColor, flankShape)
           .clickable(onClick = onToggleAppDrawer)
-          .testTag("app_drawer_button"),
+          .testTag("app_drawer_button")
+        else -> Modifier
+          .size(50.dp)
+          .clip(flankShape)
+          .background(panelBgElevated)
+          .border(1.5.dp, borderColor, flankShape)
+          .clickable(onClick = onToggleAppDrawer)
+          .testTag("app_drawer_button")
+      }
+      val appsIconTint = when {
+        isModern -> Color(0xFF00D2FF)
+        isMinimal -> Color(0xFF6E8094)
+        else -> borderColor
+      }
+
+      Box(
+        modifier = appsModifier,
         contentAlignment = Alignment.Center
       ) {
         Icon(
           imageVector = Icons.Default.Apps,
           contentDescription = "Applications",
-          tint = if (isModern) Color(0xFF00D2FF) else if (isMinimal) Color(0xFF8A99AD) else borderColor,
+          tint = appsIconTint,
           modifier = Modifier.size(22.dp)
         )
       }
 
       // 2. CENTER PILL: Input bar (... Ask WEYKY anything)
-      Box(
-        modifier = Modifier
+      val pillModifier = when {
+        isModern -> Modifier
+          .weight(1f)
+          .height(50.dp)
+          .shadow(6.dp, pillShape, spotColor = Color(0x5500D2FF), ambientColor = Color(0x2200D2FF))
+          .clip(pillShape)
+          .background(modernGlassGradient)
+          .border(1.5.dp, modernBorderBrush, pillShape)
+          .testTag("home_bottom_input_area")
+        isMinimal -> Modifier
           .weight(1f)
           .height(50.dp)
           .clip(pillShape)
-          .background(pillBg)
-          .border(1.2.dp, pillBorder, pillShape)
-          .testTag("home_bottom_input_area"),
+          .background(minimalSlateBg)
+          .border(1.dp, minimalBorderColor, pillShape)
+          .testTag("home_bottom_input_area")
+        else -> Modifier
+          .weight(1f)
+          .height(50.dp)
+          .clip(pillShape)
+          .background(panelBg)
+          .border(1.2.dp, borderColor, pillShape)
+          .testTag("home_bottom_input_area")
+      }
+
+      Box(
+        modifier = pillModifier,
         contentAlignment = Alignment.CenterStart
       ) {
         Row(
@@ -595,20 +635,44 @@ fun HomeBottomControlRow(
       }
 
       // 3. RIGHT BUTTON: Settings (Gear icon)
-      Box(
-        modifier = Modifier
+      val settingsModifier = when {
+        isModern -> Modifier
+          .size(50.dp)
+          .shadow(6.dp, flankShape, spotColor = Color(0x6600D2FF), ambientColor = Color(0x3300D2FF))
+          .clip(flankShape)
+          .background(modernGlassGradient)
+          .border(1.5.dp, modernBorderBrush, flankShape)
+          .clickable(onClick = onOpenSettings)
+          .testTag("settings_button")
+        isMinimal -> Modifier
           .size(50.dp)
           .clip(flankShape)
-          .background(flankBg)
-          .border(1.2.dp, flankBorder, flankShape)
+          .background(minimalSlateBg)
+          .border(1.dp, minimalBorderColor, flankShape)
           .clickable(onClick = onOpenSettings)
-          .testTag("settings_button"),
+          .testTag("settings_button")
+        else -> Modifier
+          .size(50.dp)
+          .clip(flankShape)
+          .background(panelBgElevated)
+          .border(1.5.dp, borderColor, flankShape)
+          .clickable(onClick = onOpenSettings)
+          .testTag("settings_button")
+      }
+      val settingsIconTint = when {
+        isModern -> Color(0xFF00D2FF)
+        isMinimal -> Color(0xFF00D2FF)
+        else -> borderColor
+      }
+
+      Box(
+        modifier = settingsModifier,
         contentAlignment = Alignment.Center
       ) {
         Icon(
           imageVector = Icons.Default.Settings,
           contentDescription = "Settings",
-          tint = if (isModern || isMinimal) Color(0xFF00D2FF) else borderColor,
+          tint = settingsIconTint,
           modifier = Modifier.size(22.dp)
         )
       }
@@ -743,39 +807,94 @@ fun HomeLandscapeSettingsButton(
   textPrimary: Color,
   isRtl: Boolean,
   onClick: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  themeMode: WeykyThemeMode = WeykyThemeMode.TACTICAL
 ) {
-  JarvisHudBadge(
-    accentColor = borderColor,
-    containerColor = panelBgElevated,
-    cutSize = 8.dp,
-    onClick = onClick,
-    modifier = modifier
-      .fillMaxWidth()
-      .height(48.dp)
-      .testTag("settings_button")
-  ) {
-    Row(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Center
+  val isModern = themeMode == WeykyThemeMode.MODERN
+  val isMinimal = themeMode == WeykyThemeMode.MINIMAL
+
+  if (themeMode == WeykyThemeMode.TACTICAL) {
+    JarvisHudBadge(
+      accentColor = borderColor,
+      containerColor = panelBgElevated,
+      cutSize = 8.dp,
+      onClick = onClick,
+      modifier = modifier
+        .fillMaxWidth()
+        .height(48.dp)
+        .testTag("settings_button")
     ) {
-      Icon(
-        imageVector = Icons.Default.Settings,
-        contentDescription = "Settings",
-        tint = borderColor,
-        modifier = Modifier.size(20.dp)
-      )
-      Spacer(modifier = Modifier.width(6.dp))
-      Text(
-        text = if (isRtl) "الإعدادات" else "Settings",
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = textPrimary,
-        maxLines = 1
-      )
+      Row(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+      ) {
+        Icon(
+          imageVector = Icons.Default.Settings,
+          contentDescription = "Settings",
+          tint = borderColor,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+          text = if (isRtl) "الإعدادات" else "Settings",
+          fontSize = 12.sp,
+          fontWeight = FontWeight.SemiBold,
+          color = textPrimary,
+          maxLines = 1
+        )
+      }
+    }
+  } else {
+    val shape = if (isModern) RoundedCornerShape(16.dp) else RoundedCornerShape(12.dp)
+    val modernGradient = Brush.verticalGradient(listOf(Color(0x550F2C4C), Color(0x330B1B30)))
+    val modernBorder = Brush.linearGradient(listOf(Color(0xFF00E5FF), Color(0xFF0088FF)))
+    val btnMod = if (isModern) {
+      modifier
+        .fillMaxWidth()
+        .height(48.dp)
+        .shadow(6.dp, shape, spotColor = Color(0x6600D2FF), ambientColor = Color(0x3300D2FF))
+        .clip(shape)
+        .background(modernGradient)
+        .border(1.5.dp, modernBorder, shape)
+        .clickable(onClick = onClick)
+        .testTag("settings_button")
+    } else {
+      modifier
+        .fillMaxWidth()
+        .height(48.dp)
+        .clip(shape)
+        .background(Color(0xFF101924))
+        .border(1.dp, Color(0xFF1E2D3D), shape)
+        .clickable(onClick = onClick)
+        .testTag("settings_button")
+    }
+    Box(
+      modifier = btnMod,
+      contentAlignment = Alignment.Center
+    ) {
+      Row(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+      ) {
+        Icon(
+          imageVector = Icons.Default.Settings,
+          contentDescription = "Settings",
+          tint = Color(0xFF00D2FF),
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+          text = if (isRtl) "الإعدادات" else "Settings",
+          fontSize = 12.sp,
+          fontWeight = FontWeight.SemiBold,
+          color = textPrimary,
+          maxLines = 1
+        )
+      }
     }
   }
 }
@@ -791,39 +910,95 @@ fun HomeLandscapeAppDrawerButton(
   textPrimary: Color,
   isRtl: Boolean,
   onClick: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  themeMode: WeykyThemeMode = WeykyThemeMode.TACTICAL
 ) {
-  JarvisHudBadge(
-    accentColor = borderColor,
-    containerColor = panelBgElevated,
-    cutSize = 8.dp,
-    onClick = onClick,
-    modifier = modifier
-      .fillMaxWidth()
-      .height(48.dp)
-      .testTag("app_drawer_button")
-  ) {
-    Row(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Center
+  val isModern = themeMode == WeykyThemeMode.MODERN
+  val isMinimal = themeMode == WeykyThemeMode.MINIMAL
+
+  if (themeMode == WeykyThemeMode.TACTICAL) {
+    JarvisHudBadge(
+      accentColor = borderColor,
+      containerColor = panelBgElevated,
+      cutSize = 8.dp,
+      onClick = onClick,
+      modifier = modifier
+        .fillMaxWidth()
+        .height(48.dp)
+        .testTag("app_drawer_button")
     ) {
-      Icon(
-        imageVector = Icons.Default.Apps,
-        contentDescription = "Applications",
-        tint = borderColor,
-        modifier = Modifier.size(20.dp)
-      )
-      Spacer(modifier = Modifier.width(6.dp))
-      Text(
-        text = if (isRtl) "التطبيقات" else "Apps",
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = textPrimary,
-        maxLines = 1
-      )
+      Row(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+      ) {
+        Icon(
+          imageVector = Icons.Default.Apps,
+          contentDescription = "Applications",
+          tint = borderColor,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+          text = if (isRtl) "التطبيقات" else "Apps",
+          fontSize = 12.sp,
+          fontWeight = FontWeight.SemiBold,
+          color = textPrimary,
+          maxLines = 1
+        )
+      }
+    }
+  } else {
+    val shape = if (isModern) RoundedCornerShape(16.dp) else RoundedCornerShape(12.dp)
+    val modernGradient = Brush.verticalGradient(listOf(Color(0x550F2C4C), Color(0x330B1B30)))
+    val modernBorder = Brush.linearGradient(listOf(Color(0xFF00E5FF), Color(0xFF0088FF)))
+    val btnMod = if (isModern) {
+      modifier
+        .fillMaxWidth()
+        .height(48.dp)
+        .shadow(6.dp, shape, spotColor = Color(0x6600D2FF), ambientColor = Color(0x3300D2FF))
+        .clip(shape)
+        .background(modernGradient)
+        .border(1.5.dp, modernBorder, shape)
+        .clickable(onClick = onClick)
+        .testTag("app_drawer_button")
+    } else {
+      modifier
+        .fillMaxWidth()
+        .height(48.dp)
+        .clip(shape)
+        .background(Color(0xFF101924))
+        .border(1.dp, Color(0xFF1E2D3D), shape)
+        .clickable(onClick = onClick)
+        .testTag("app_drawer_button")
+    }
+    val iconTint = if (isModern) Color(0xFF00D2FF) else Color(0xFF6E8094)
+    Box(
+      modifier = btnMod,
+      contentAlignment = Alignment.Center
+    ) {
+      Row(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+      ) {
+        Icon(
+          imageVector = Icons.Default.Apps,
+          contentDescription = "Applications",
+          tint = iconTint,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+          text = if (isRtl) "التطبيقات" else "Apps",
+          fontSize = 12.sp,
+          fontWeight = FontWeight.SemiBold,
+          color = textPrimary,
+          maxLines = 1
+        )
+      }
     }
   }
 }
